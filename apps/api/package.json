@@ -32,6 +32,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.28",
+    "@types/qrcode": "^1.5.5",
+    "@types/speakeasy": "^2.0.10",
     "prisma": "^5.12.1",
     "tsx": "^4.7.2",
     "typescript": "^5.4.3"

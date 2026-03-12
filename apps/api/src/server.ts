@@ -30,13 +30,6 @@ declare module "fastify" {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
-  interface FastifyRequest {
-    user: {
-      adminId: string;
-      email: string;
-      role: string;
-    };
-  }
 }
 
 const jwtSecret = process.env.JWT_SECRET || "dev-secret";
