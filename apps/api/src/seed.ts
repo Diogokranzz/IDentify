@@ -12,15 +12,14 @@ async function main() {
     throw new Error("Missing ADMIN_SEED_EMAIL or ADMIN_SEED_PASSWORD");
   }
 
-  const existing = await prisma.admin.findUnique({ where: { email } });
-  if (existing) {
-    console.log("Seed admin already exists");
-    return;
-  }
-
   const passwordHash = await argon2.hash(password);
-  await prisma.admin.create({
-    data: {
+  const admin = await prisma.admin.upsert({
+    where: { email },
+    update: {
+      passwordHash,
+      status: "active",
+    },
+    create: {
       email,
       name: "Admin Root",
       passwordHash,
@@ -29,7 +28,7 @@ async function main() {
     },
   });
 
-  console.log("Seed admin created:", email);
+  console.log("Seed admin upserted:", admin.email);
 }
 
 main()
