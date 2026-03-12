@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  name         String
+  passwordHash String
+  role         String       @default("admin")
+  status       String       @default("active")
+  totpSecret   String?
+  totpEnabled  Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  auditLogs    AdminAudit[]
+}
+
+model AdminAudit {
+  id        String   @id @default(uuid())
+  adminId   String
+  action    String
+  ip        String?
+  createdAt DateTime @default(now())
+  admin     Admin    @relation(fields: [adminId], references: [id])
+}
+
+model Person {
+  id        String   @id @default(uuid())
+  name      String
+  block     String
+  area      String
+  status    String   @default("active")
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  embeddings FaceEmbedding[]
+}
+
+model FaceEmbedding {
+  id        String   @id @default(uuid())
+  personId  String
+  embedding Unsupported("vector")
+  createdAt DateTime @default(now())
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([personId])
+}

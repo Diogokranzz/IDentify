@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ring" x1="96" y1="96" x2="430" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1697A6"/>
+      <stop offset="0.52" stop-color="#6FD5D9"/>
+      <stop offset="1" stop-color="#F2B36A"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="170" y1="160" x2="370" y2="352" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B1C24"/>
+      <stop offset="0.55" stop-color="#1697A6"/>
+      <stop offset="1" stop-color="#F2B36A"/>
+    </linearGradient>
+    <filter id="softGlow" x="36" y="36" width="440" height="440" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.09 0 0 0 0 0.61 0 0 0 0 0.65 0 0 0 0.35 0"/>
+      <feBlend mode="screen" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <circle cx="256" cy="256" r="200" stroke="url(#ring)" stroke-width="24" />
+  <circle cx="256" cy="256" r="160" stroke="#0B1C24" stroke-opacity="0.12" stroke-width="10" />
+
+  <g filter="url(#softGlow)">
+    <path
+      d="M260 160H318C362 160 396 194 396 238V274C396 318 362 352 318 352H260V160ZM290 192H316C345 192 370 217 370 246V266C370 295 345 320 316 320H290V192Z"
+      fill="url(#mark)"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+    <rect x="185" y="160" width="42" height="192" rx="21" fill="url(#mark)" />
+  </g>
+
+  <g stroke="#1697A6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+    <path d="M156 196V156H196" />
+    <path d="M356 156H316" />
+    <path d="M356 316V356H316" />
+    <path d="M156 316V356H196" />
+  </g>
+</svg>

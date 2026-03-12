@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0b1c24;
+  --ink-soft: rgba(11, 28, 36, 0.66);
+  --glass: rgba(255, 255, 255, 0.16);
+  --glass-strong: rgba(255, 255, 255, 0.26);
+  --stroke: rgba(255, 255, 255, 0.45);
+  --accent: #1697a6;
+  --accent-2: #f2b36a;
+  --bg-1: #dae7f0;
+  --bg-2: #f6efe0;
+  --bg-3: #cfe9e3;
+  --shadow: 0 30px 70px rgba(11, 28, 36, 0.18);
+}
+
+@theme inline {
+  --color-background: transparent;
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-space);
+  --font-body: var(--font-manrope);
+}
+
+body {
+  min-height: 100vh;
+  color: var(--ink);
+  background: radial-gradient(circle at top left, var(--bg-3), transparent 60%),
+    radial-gradient(circle at 70% 15%, var(--bg-2), transparent 55%),
+    linear-gradient(120deg, var(--bg-1), var(--bg-2));
+  font-family: var(--font-space), var(--font-manrope), sans-serif;
+}
+
+.glass-card {
+  background: var(--glass);
+  border: 1px solid var(--stroke);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.glass-chip {
+  background: rgba(22, 151, 166, 0.12);
+  border: 1px solid rgba(22, 151, 166, 0.35);
+  color: var(--accent);
+}
+
+.orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.orb-a {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(22, 151, 166, 0.5), transparent 70%);
+  top: 6%;
+  left: 4%;
+}
+
+.orb-b {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(242, 179, 106, 0.5), transparent 70%);
+  bottom: 8%;
+  right: 6%;
+}
+
+.orb-c {
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(11, 28, 36, 0.22), transparent 70%);
+  top: 55%;
+  left: 55%;
+}
