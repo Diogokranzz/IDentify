@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import type { FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -24,6 +25,7 @@ const app = Fastify({
       options: { translateTime: "HH:MM:ss Z", ignore: "pid,hostname" },
     },
   },
+  trustProxy: true,
 });
 
 declare module "fastify" {
@@ -33,19 +35,25 @@ declare module "fastify" {
 }
 
 const jwtSecret = process.env.JWT_SECRET || "dev-secret";
+const isProd = process.env.NODE_ENV === "production";
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean)
+  : true;
 
-await app.register(cors, { origin: true, credentials: true });
+await app.register(cors, { origin: corsOrigin, credentials: true });
 await app.register(helmet);
 await app.register(rateLimit, { max: 100, timeWindow: "1 minute" });
-await app.register(swagger, {
-  openapi: {
-    info: {
-      title: "IDentify API",
-      version: "1.0.0",
+if (!isProd) {
+  await app.register(swagger, {
+    openapi: {
+      info: {
+        title: "IDentify API",
+        version: "1.0.0",
+      },
     },
-  },
-});
-await app.register(swaggerUi, { routePrefix: "/docs" });
+  });
+  await app.register(swaggerUi, { routePrefix: "/docs" });
+}
 await app.register(jwt, { secret: jwtSecret });
 
 app.setErrorHandler((error, request, reply) => {
@@ -99,12 +107,24 @@ async function verifySsoToken(idToken: string) {
   return { email };
 }
 
-async function audit(adminId: string, action: string, ip?: string) {
+async function audit(
+  adminId: string,
+  action: string,
+  request: FastifyRequest,
+  options?: { status?: number; meta?: Record<string, unknown> }
+) {
+  const route = request.routeOptions?.url || request.url;
+  const userAgent = request.headers["user-agent"];
   await prisma.adminAudit.create({
     data: {
       adminId,
       action,
-      ip,
+      ip: request.ip,
+      method: request.method,
+      route,
+      userAgent: typeof userAgent === "string" ? userAgent : undefined,
+      status: options?.status,
+      meta: options?.meta,
     },
   });
 }
@@ -165,7 +185,7 @@ app.post("/auth/login", async (request, reply) => {
     role: admin.role,
   });
 
-  await audit(admin.id, "login", request.ip);
+  await audit(admin.id, "login", request, { status: 200 });
   return reply.send({ token });
 });
 
@@ -185,7 +205,7 @@ app.post("/auth/sso", async (request, reply) => {
       email: admin.email,
       role: admin.role,
     });
-    await audit(admin.id, "sso-login", request.ip);
+    await audit(admin.id, "sso-login", request, { status: 200 });
     return reply.send({ token });
   } catch (error) {
     return reply.code(401).send({ error: "Falha na verificação do SSO" });
@@ -207,7 +227,7 @@ app.post("/auth/2fa/setup", { preHandler: [app.authenticate] }, async (request, 
     data: { totpSecret: secret.base32, totpEnabled: false },
   });
 
-  await audit(adminId, "2fa-setup", request.ip);
+  await audit(adminId, "2fa-setup", request, { status: 200 });
   return reply.send({ otpauth: secret.otpauth_url, qr });
 });
 
@@ -237,7 +257,7 @@ app.post("/auth/2fa/verify", { preHandler: [app.authenticate] }, async (request,
     data: { totpEnabled: true },
   });
 
-  await audit(adminId, "2fa-verify", request.ip);
+  await audit(adminId, "2fa-verify", request, { status: 200 });
   return reply.send({ enabled: true });
 });
 
@@ -271,6 +291,11 @@ app.get("/admin/audit", { preHandler: [app.authenticate] }, async (request) => {
       id: log.id,
       action: log.action,
       ip: log.ip,
+      method: log.method,
+      route: log.route,
+      userAgent: log.userAgent,
+      status: log.status,
+      meta: log.meta,
       createdAt: log.createdAt,
       admin: log.admin,
     })),
@@ -341,7 +366,10 @@ app.post("/faces/enroll", { preHandler: [app.authenticate] }, async (request, re
     `INSERT INTO "FaceEmbedding" ("id","personId","embedding") VALUES ('${embeddingId}', '${personId}', '${vector}'::vector);`
   );
 
-  await audit(request.user.adminId, "face-enroll", request.ip);
+  await audit(request.user.adminId, "face-enroll", request, {
+    status: 201,
+    meta: { personId, embeddingId },
+  });
 
   return reply.code(201).send({ id: embeddingId });
 });
@@ -361,7 +389,10 @@ app.post("/persons", { preHandler: [app.authenticate] }, async (request, reply) 
   });
   const payload = schema.parse(request.body);
   const created = await prisma.person.create({ data: payload });
-  await audit(request.user.adminId, "person-create", request.ip);
+  await audit(request.user.adminId, "person-create", request, {
+    status: 201,
+    meta: { personId: created.id },
+  });
   return reply.code(201).send({ data: created });
 });
 
@@ -377,14 +408,20 @@ app.patch("/persons/:id", { preHandler: [app.authenticate] }, async (request, re
   const { id } = request.params as { id: string };
 
   const updated = await prisma.person.update({ where: { id }, data: payload });
-  await audit(request.user.adminId, "person-update", request.ip);
+  await audit(request.user.adminId, "person-update", request, {
+    status: 200,
+    meta: { personId: id },
+  });
   return reply.send({ data: updated });
 });
 
 app.delete("/persons/:id", { preHandler: [app.authenticate] }, async (request, reply) => {
   const { id } = request.params as { id: string };
   await prisma.person.delete({ where: { id } });
-  await audit(request.user.adminId, "person-delete", request.ip);
+  await audit(request.user.adminId, "person-delete", request, {
+    status: 204,
+    meta: { personId: id },
+  });
   return reply.code(204).send();
 });
 

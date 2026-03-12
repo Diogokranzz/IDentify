@@ -26,6 +26,11 @@ model AdminAudit {
   adminId   String
   action    String
   ip        String?
+  method    String?
+  route     String?
+  userAgent String?
+  status    Int?
+  meta      Json?
   createdAt DateTime @default(now())
   admin     Admin    @relation(fields: [adminId], references: [id])
 }

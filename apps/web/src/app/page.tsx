@@ -110,9 +110,12 @@ export default function Home() {
           >
             Abrir terminal
           </Link>
-          <button className="rounded-full border border-white/60 px-6 py-3 text-sm font-semibold text-[color:var(--ink)] transition hover:bg-white/50">
+          <Link
+            href="/roadmap"
+            className="rounded-full border border-white/60 px-6 py-3 text-center text-sm font-semibold text-[color:var(--ink)] transition hover:bg-white/50"
+          >
             Ver roadmap do sistema
-          </button>
+          </Link>
         </div>
       </section>
     </main>

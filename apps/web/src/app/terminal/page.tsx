@@ -5,6 +5,8 @@ import Link from "next/link";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const TERMINAL_KEY = process.env.NEXT_PUBLIC_TERMINAL_KEY || "";
+const DETECTOR_INPUT_SIZE = 128;
+const DETECTOR_SCORE_THRESHOLD = 0.5;
 
 export default function TerminalPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -55,7 +57,7 @@ export default function TerminalPage() {
   async function startCamera() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+        video: { width: { ideal: 480 }, height: { ideal: 360 }, facingMode: "user" },
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -79,7 +81,10 @@ export default function TerminalPage() {
     setLatencyMs(null);
     try {
       const faceapi = faceapiRef.current;
-      const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.6 });
+      const options = new faceapi.TinyFaceDetectorOptions({
+        inputSize: DETECTOR_INPUT_SIZE,
+        scoreThreshold: DETECTOR_SCORE_THRESHOLD,
+      });
       const started = performance.now();
       const result = await faceapi
         .detectSingleFace(videoRef.current, options)
@@ -124,9 +129,12 @@ export default function TerminalPage() {
 
   async function warmupModels(faceapi: typeof import("@vladmandic/face-api")) {
     const canvas = document.createElement("canvas");
-    canvas.width = 160;
-    canvas.height = 160;
-    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.6 });
+    canvas.width = DETECTOR_INPUT_SIZE;
+    canvas.height = DETECTOR_INPUT_SIZE;
+    const options = new faceapi.TinyFaceDetectorOptions({
+      inputSize: DETECTOR_INPUT_SIZE,
+      scoreThreshold: DETECTOR_SCORE_THRESHOLD,
+    });
     try {
       await faceapi.detectSingleFace(canvas, options);
     } catch {

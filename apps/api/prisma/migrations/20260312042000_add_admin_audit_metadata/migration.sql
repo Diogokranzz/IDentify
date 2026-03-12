@@ -1,0 +1,6 @@
+ALTER TABLE "AdminAudit"
+ADD COLUMN "method" TEXT,
+ADD COLUMN "route" TEXT,
+ADD COLUMN "userAgent" TEXT,
+ADD COLUMN "status" INTEGER,
+ADD COLUMN "meta" JSONB;
