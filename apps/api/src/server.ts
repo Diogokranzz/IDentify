@@ -6,7 +6,7 @@ import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import jwt from "@fastify/jwt";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { z } from "zod";
 import argon2 from "argon2";
 import dotenv from "dotenv";
@@ -111,7 +111,7 @@ async function audit(
   adminId: string,
   action: string,
   request: FastifyRequest,
-  options?: { status?: number; meta?: Record<string, unknown> }
+  options?: { status?: number; meta?: Prisma.InputJsonValue }
 ) {
   const route = request.routeOptions?.url || request.url;
   const userAgent = request.headers["user-agent"];
